@@ -31,7 +31,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   // Local pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const itemsPerPage = 10;
 
   // Calculate income and expenses stats
   const stats = useMemo(() => {

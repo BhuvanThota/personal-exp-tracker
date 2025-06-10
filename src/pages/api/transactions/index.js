@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     try {
       // Extract pagination parameters from query
       const page = parseInt(req.query.page) || 1
-      const limit = parseInt(req.query.limit) || 3
+      const limit = parseInt(req.query.limit) || 10
       const skip = (page - 1) * limit
 
       // Validate pagination parameters
