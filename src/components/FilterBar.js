@@ -1,7 +1,35 @@
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Download, FileText, TrendingUp } from 'lucide-react'
 
 export default function FilterBar({ onFilter, categories }) {
+  // Export logic for CSV and JSON
+  const handleExport = async (format = 'csv') => {
+    try {
+      const response = await fetch(`/api/export?format=${format}`)
+      if (format === 'csv') {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'transactions.csv'
+        a.click()
+        window.URL.revokeObjectURL(url)
+      } else {
+        const data = await response.json()
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: 'application/json'
+        })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'transactions.json'
+        a.click()
+        window.URL.revokeObjectURL(url)
+      }
+    } catch (error) {
+      console.error('Export failed:', error)
+    }
+  }
   const [collapsed, setCollapsed] = useState(true)
   const [filters, setFilters] = useState({
     dateFrom: '',
@@ -31,18 +59,44 @@ export default function FilterBar({ onFilter, categories }) {
 
   return (
     <div className="mb-6 p-4 bg-white dark:bg-gray-800 shadow rounded-2xl border">
-      <button
-        type="button"
-        onClick={() => setCollapsed(c => !c)}
-        aria-expanded={!collapsed}
-        aria-controls="filter-bar-form"
-        className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800"
-      >
-        <span>{collapsed ? 'Show Filters' : 'Hide Filters'}</span>
-        <ChevronDown
-          className={`w-4 h-4 transition-transform duration-300 ${collapsed ? 'rotate-0' : 'rotate-180'}`}
-        />
-      </button>
+
+      <div className="flex justify-between items-center w-full mb-2 gap-4 flex-wrap">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setCollapsed(c => !c)}
+            aria-expanded={!collapsed}
+            aria-controls="filter-bar-form"
+            className="flex items-center gap-2 font-semibold text-blue-600 hover:text-blue-800"
+          >
+            <span>{collapsed ? 'Show Filters' : 'Hide Filters'}</span>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-300 ${collapsed ? 'rotate-0' : 'rotate-180'}`}
+            />
+          </button>
+        </div>
+        <div className="flex justify-end items-center gap-3">
+          <button
+            onClick={() => handleExport('csv')}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <Download className="w-4 h-4" />
+            <span className="sm:inline">CSV</span>
+          </button>
+          <button
+            onClick={() => handleExport('json')}
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="sm:inline">JSON</span>
+          </button>
+          <a href="/reports" className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
+            Reports
+            <TrendingUp className="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+
 
       <div
         id="filter-bar-form"
@@ -112,8 +166,18 @@ export default function FilterBar({ onFilter, categories }) {
             />
           </div>
 
-          {/* Clear Button */}
-          <div className="sm:col-span-2 lg:col-span-1 flex items-end">
+          {/* Apply & Clear Buttons */}
+          <div className="sm:col-span-2 lg:col-span-2 flex gap-2 items-end">
+            <button
+              type="button"
+              onClick={() => {
+                onFilter(filters);
+                window.location.reload();
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+            >
+              Apply Filters
+            </button>
             <button
               type="button"
               onClick={clearFilters}

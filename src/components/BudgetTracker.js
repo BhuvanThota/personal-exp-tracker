@@ -93,11 +93,11 @@ export default function BudgetTracker() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center px-2">
+      <div className="flex justify-between items-center px-2 dark:text-gray-200 dark:text-gray-200">
         <h2 className="text-lg font-semibold">Budget Tracker</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sm text-blue-600 hover:text-blue-800 font-medium dark:text-blue-400 dark:hover:text-blue-600"
         >
           {showForm ? 'Cancel' : '+ Add Budget'}
         </button>

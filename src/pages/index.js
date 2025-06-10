@@ -7,10 +7,7 @@ import BalanceChart from '../components/BalanceChart'
 import ThemeToggle from '../components/ThemeToggle'
 import { formatCurrency } from '../lib/utils'
 import {
-  Download,
-  FileText,
-  TrendingUp,
-  DollarSign,
+  IndianRupee,
   Wallet,
   ArrowUpRight,
   ArrowDownRight
@@ -163,35 +160,6 @@ export default function Home() {
     fetchData()
   }
   
-  const handleExport = async (format = 'csv') => {
-    try {
-      const response = await fetch(`/api/export?format=${format}`)
-      
-      if (format === 'csv') {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'transactions.csv'
-        a.click()
-        window.URL.revokeObjectURL(url)
-      } else {
-        const data = await response.json()
-        const blob = new Blob([JSON.stringify(data, null, 2)], {
-          type: 'application/json'
-        })
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'transactions.json'
-        a.click()
-        window.URL.revokeObjectURL(url)
-      }
-    } catch (error) {
-      console.error('Export failed:', error)
-    }
-  }
-  
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -211,7 +179,7 @@ export default function Home() {
       {/* Modern Header with Glass Effect */}
       <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-gray-800/80 border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-row md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -224,29 +192,8 @@ export default function Home() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">Manage your finances</p>
                 </div>
               </div>
-              <ThemeToggle />
             </div>
-            
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => handleExport('csv')}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <Download className="w-4 h-4" />
-                <span className="sm:inline">CSV</span>
-              </button>
-              <button
-                onClick={() => handleExport('json')}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <FileText className="w-4 h-4" />
-                <span className="sm:inline">JSON</span>
-              </button>
-              <a href="/reports" className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
-                Reports
-                <TrendingUp className="w-4 h-4" />
-              </a>
-            </div>
+            <ThemeToggle />
           </div>
         </div>
       </div>
@@ -270,7 +217,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <DollarSign className="w-8 h-8 text-white/80" />
+                  <IndianRupee className="p-1 w-8 h-8 text-white/80" />
                   <div className="text-sm text-white/80 font-medium">Current Balance</div>
                 </div>
                 <div className="text-4xl font-bold mb-2">{formatCurrency(balance.amount)}</div>
@@ -401,13 +348,13 @@ export default function Home() {
           <div className="space-y-8">
             {/* Balance Chart */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-              <h2 className="text-lg font-semibold mb-2">Balance Trend (30 days)</h2>
+              <h2 className="text-lg font-semibold mb-2 dark:text-gray-200">Balance Trend (30 days)</h2>
               <BalanceChart data={balanceHistory} />
             </div>
 
             {/* Budget Tracker */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-              <h2 className="text-lg font-semibold mb-2">Budgets</h2>
+              <h2 className="text-lg font-semibold mb-2 dark:text-gray-200">Budgets</h2>
               <BudgetTracker onChange={fetchData} />
             </div>
           </div>
