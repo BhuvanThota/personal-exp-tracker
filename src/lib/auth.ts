@@ -15,7 +15,7 @@ export const authOptions = {
     // Called after successful sign-in
     async signIn({ user }: { user: { email?: string | null; name?: string | null; image?: string | null } }) {
       try {
-        await prisma.user.upsert({
+        await prisma.userProfile.upsert({
           where: { email: user.email! },
           update: {
             ...(user.name != null ? { name: user.name } : {}),
@@ -36,7 +36,7 @@ export const authOptions = {
 
     // Add the user ID to the session
     async session({ session }: { session: { user?: { email?: string | null; id?: string } } }) {
-          const dbUser = await prisma.user.findUnique({
+          const dbUser = await prisma.userProfile.findUnique({
         where: { email: session.user?.email ?? "" },
         select: { id: true },
       });
