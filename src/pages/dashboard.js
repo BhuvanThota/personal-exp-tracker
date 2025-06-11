@@ -138,7 +138,6 @@ export default function Home() {
         t.description.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
-    console.log("Apply filters",filtered);
     return filtered;
 
   }, [transactions, filters]);

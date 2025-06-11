@@ -18,8 +18,8 @@ export const authOptions = {
         await prisma.user.upsert({
           where: { email: user.email! },
           update: {
-            name: user.name,
-            image: user.image,
+            ...(user.name != null ? { name: user.name } : {}),
+            ...(user.image != null ? { image: user.image } : {}),
           },
           create: {
             email: user.email!,
