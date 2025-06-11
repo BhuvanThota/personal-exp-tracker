@@ -59,7 +59,7 @@ const ExpenseTrackerHomepage = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [currentTransaction]);
+  }, [currentTransaction, transactions]);
 
   const AnimatedNumber = ({ value, prefix = '', suffix = '' }) => {
     const [displayValue, setDisplayValue] = useState(0);

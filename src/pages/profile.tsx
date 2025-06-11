@@ -161,7 +161,7 @@ export default function ProfilePage() {
                 onCancel={() => setIsEditing(false)}
                 onSave={handleSubmit}
                 saving={saving}
-                usernameError={usernameError}
+                usernameError={usernameError || ""}
                 onUsernameBlur={onUsernameBlur}
                 profilePicOptions={profilePicOptions}
                 checkingUsername={checkingUsername}
