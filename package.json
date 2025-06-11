@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
     "@prisma/client": "^6.9.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.514.0",
