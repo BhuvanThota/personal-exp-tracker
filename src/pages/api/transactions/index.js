@@ -51,13 +51,22 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       const { date, description, amount, type, category } = req.body
-      
+
+      // Validate required fields
+      if (!date || !description || !amount || !type) {
+        return res.status(400).json({ error: 'Missing required fields' })
+      }
+      const parsedAmount = parseFloat(amount)
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ error: 'Amount must be a positive number' })
+      }
+
       // Create transaction
       const transaction = await prisma.transaction.create({
         data: {
           date: new Date(date),
           description,
-          amount: parseFloat(amount),
+          amount: parsedAmount,
           type,
           category
         }
@@ -82,7 +91,7 @@ export default async function handler(req, res) {
       
       // Update suggestions
       await prisma.suggestion.upsert({
-        where: { description },
+        where: { category: category || 'Other' },
         update: { frequency: { increment: 1 } },
         create: { description, category: category || 'Other', frequency: 1 }
       })

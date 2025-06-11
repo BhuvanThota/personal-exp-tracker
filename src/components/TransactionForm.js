@@ -40,16 +40,22 @@ export default function TransactionForm({ onSubmit, onClose, initialData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    // Capitalize first letter of every word in description before submit
+    const capitalizeWords = str => str.replace(/\b\w/g, c => c.toUpperCase());
+    const capitalizedFormData = {
+      ...formData,
+      description: capitalizeWords(formData.description || '')
+    }
     if (initialData && initialData.id) {
       // Edit mode: call onSubmit with updated data (PUT handled in parent)
-      await onSubmit({ ...formData, id: initialData.id })
+      await onSubmit({ ...capitalizedFormData, id: initialData.id })
     } else {
       // Add mode: POST as before
       try {
         const res = await fetch('/api/transactions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(capitalizedFormData)
         })
 
         if (res.ok) {
