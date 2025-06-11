@@ -46,7 +46,10 @@ export default function FilterBar({ filters, setFilters, categories }) {
     }
   };
 
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = (e, key, value) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     setFilters(prevFilters => ({ ...prevFilters, [key]: value }));
   };
 
@@ -131,15 +134,15 @@ export default function FilterBar({ filters, setFilters, categories }) {
         id="filter-bar-form"
         className={`transition-all duration-500 ease-in-out overflow-hidden ${collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'mt-4 max-h-[1000px] opacity-100'}`}
       >
-        <form className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <form className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" onSubmit={e => e.preventDefault()}>
           {/* Date From */}
           <div>
             <label htmlFor="dateFrom" className="block mb-1 text-xs font-medium text-gray-700 dark:text-gray-100">From Date</label>
             <input
               type="date"
               id="dateFrom"
-              value={filters.dateFrom || ''} // Ensure value is controlled even if empty
-              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              value={filters.dateFrom || ''}
+              onChange={(e) => handleFilterChange(e, 'dateFrom', e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
@@ -193,8 +196,8 @@ export default function FilterBar({ filters, setFilters, categories }) {
             <input
               type="text"
               id="search"
-              value={filters.search || ''} // Ensure value is controlled even if empty
-              onChange={(e) => handleFilterChange('search', e.target.value)}
+              value={filters.search || ''}
+              onChange={(e) => handleFilterChange(e, 'search', e.target.value)}
               placeholder="Search description..."
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
@@ -252,7 +255,7 @@ export default function FilterBar({ filters, setFilters, categories }) {
             )}
             {filters.search && (
               <span className="flex items-center gap-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100 px-3 py-1 rounded-full font-medium">
-                <Search className="w-3 h-3" /> Search: "{filters.search}"
+                <Search className="w-3 h-3" /> Search: &quot;{filters.search}&quot;
               </span>
             )}
           </div>
