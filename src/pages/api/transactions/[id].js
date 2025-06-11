@@ -1,96 +1,90 @@
+// pages/api/transactions/[id].js
 import { prisma } from '../../../lib/prisma'
 
 export default async function handler(req, res) {
   const { id } = req.query
 
-  if (req.method === 'PUT') {
-    try {
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ error: 'Invalid or missing transaction ID' })
+  }
+
+  try {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id },
+    })
+
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' })
+    }
+
+    const balance = await prisma.balance.findFirst()
+    if (!balance) {
+      return res.status(500).json({ error: 'Balance record not found' })
+    }
+
+    if (req.method === 'PUT') {
       const { date, description, amount, type, category } = req.body
-      
-      // Get the original transaction
-      const originalTransaction = await prisma.transaction.findUnique({
-        where: { id }
-      })
-      
-      if (!originalTransaction) {
-        return res.status(404).json({ error: 'Transaction not found' })
+
+      if (!date || !description || !amount || !type) {
+        return res.status(400).json({ error: 'Missing required fields' })
       }
-      
-      // Update the transaction
+
+      const parsedAmount = parseFloat(amount)
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ error: 'Amount must be a positive number' })
+      }
+
+      // Reverse original transaction
+      let updatedBalance = balance.amount
+      updatedBalance += transaction.type === 'CREDIT'
+        ? -transaction.amount
+        : transaction.amount
+
+      // Apply updated transaction
+      updatedBalance += type === 'CREDIT'
+        ? parsedAmount
+        : -parsedAmount
+
+      // Update transaction
       const updatedTransaction = await prisma.transaction.update({
         where: { id },
         data: {
           date: new Date(date),
           description,
-          amount: parseFloat(amount),
+          amount: parsedAmount,
           type,
-          category
-        }
+          category,
+        },
       })
-      
-      // Recalculate balance
-      const balance = await prisma.balance.findFirst()
-      if (balance) {
-        // Reverse the original transaction effect
-        let newAmount = balance.amount
-        if (originalTransaction.type === 'CREDIT') {
-          newAmount -= originalTransaction.amount
-        } else {
-          newAmount += originalTransaction.amount
-        }
-        
-        // Apply the updated transaction effect
-        if (type === 'CREDIT') {
-          newAmount += parseFloat(amount)
-        } else {
-          newAmount -= parseFloat(amount)
-        }
-        
-        await prisma.balance.update({
-          where: { id: balance.id },
-          data: { amount: newAmount }
-        })
-      }
-      
-      res.status(200).json(updatedTransaction)
-    } catch (error) {
-      console.error('Failed to update transaction:', error)
-      res.status(500).json({ error: 'Failed to update transaction' })
-    }
-  } else if (req.method === 'DELETE') {
-    try {
-      const transaction = await prisma.transaction.findUnique({
-        where: { id }
-      })
-      
-      if (!transaction) {
-        return res.status(404).json({ error: 'Transaction not found' })
-      }
-      
-      // Delete the transaction
-      await prisma.transaction.delete({
-        where: { id }
-      })
-      
+
       // Update balance
-      const balance = await prisma.balance.findFirst()
-      if (balance) {
-        const newAmount = transaction.type === 'CREDIT'
-          ? balance.amount - transaction.amount
-          : balance.amount + transaction.amount
-        
-        await prisma.balance.update({
-          where: { id: balance.id },
-          data: { amount: newAmount }
-        })
-      }
-      
-      res.status(200).json({ message: 'Transaction deleted' })
-    } catch (error) {
-      console.error('Failed to delete transaction:', error)
-      res.status(500).json({ error: 'Failed to delete transaction' })
+      await prisma.balance.update({
+        where: { id: balance.id },
+        data: { amount: updatedBalance },
+      })
+
+      return res.status(200).json(updatedTransaction)
+
+    } else if (req.method === 'DELETE') {
+      // Reverse the transaction effect on balance
+      const updatedBalance = transaction.type === 'CREDIT'
+        ? balance.amount - transaction.amount
+        : balance.amount + transaction.amount
+
+      await prisma.transaction.delete({ where: { id } })
+
+      await prisma.balance.update({
+        where: { id: balance.id },
+        data: { amount: updatedBalance },
+      })
+
+      return res.status(200).json({ message: 'Transaction deleted' })
+
+    } else {
+      return res.status(405).json({ error: 'Method not allowed' })
     }
-  } else {
-    res.status(405).json({ error: 'Method not allowed' })
+  } catch (error) {
+    console.error(`Transaction error:`, error)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 }

@@ -1,5 +1,5 @@
 import ExpenseTrackerHomepage from '../components/ExpenseTrackerHomepage';
 
-export default function Home() {
+export default function Homepage() {
   return <ExpenseTrackerHomepage />;
 }
