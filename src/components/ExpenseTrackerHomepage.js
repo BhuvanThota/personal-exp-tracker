@@ -28,12 +28,12 @@ const ExpenseTrackerHomepage = () => {
     { category: 'Bills', amount: 0, color: 'bg-orange-500' }
   ]);
 
-  const transactions = [
+  const transactions = useMemo(() => [
     { icon: Pizza, name: 'Swiggy', amount: -360, category: 'Food' },
     { icon: Car, name: 'Uber', amount: -450, category: 'Transport' },
     { icon: CreditCard, name: 'Amazon', amount: -2998, category: 'Shopping' },
     { icon: Home, name: 'Rent', amount: -12000, category: 'Bills' }
-  ];
+  ], []);
 
   // Animate values on mount
   useEffect(() => {
