@@ -16,6 +16,7 @@ import {
     Plus, 
     ArrowUpRight 
 } from 'lucide-react';
+import Link from 'next/link';
 
 const ExpenseTrackerHomepage = () => {
   const [animatedValues, setAnimatedValues] = useState({ spent: 0, saved: 0, budget: 0 });
@@ -124,10 +125,10 @@ const ExpenseTrackerHomepage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-2xl shadow-xl p-0 text-white relative overflow-hidden hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02]">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
-                <a href="/dashboard" className="group relative z-10 px-8 py-4 font-semibold text-lg flex items-center justify-center w-full">
+                <Link href="/dashboard" className="group relative z-10 px-8 py-4 font-semibold text-lg flex items-center justify-center w-full">
                     Start Free Trial
                     <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </Link>
               </div>
               <button className="border border-blue-500/50 hover:border-blue-400 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 hover:bg-blue-500/10 backdrop-blur-sm">
                 Watch Demo
@@ -357,10 +358,10 @@ const ExpenseTrackerHomepage = () => {
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-2xl shadow-xl p-0 text-white relative overflow-hidden hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02]">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
-              <a href="/dashboard" className="group relative z-10 px-12 py-6 font-bold text-xl flex items-center justify-center">
+              <Link href="/dashboard" className="group relative z-10 px-12 py-6 font-bold text-xl flex items-center justify-center">
                   Get Started Free
                   <ArrowUpRight className="inline-block ml-2 w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </a>
+              </Link>
             </div>
             <button className="border-2 border-blue-500/50 hover:border-blue-400 px-12 py-6 rounded-2xl font-bold text-xl transition-all duration-300 hover:bg-blue-500/10 backdrop-blur-sm">
               View Demo

@@ -30,6 +30,7 @@ export default async function handler(req, res) {
         res.status(200).json(transactions)
       }
     } catch (error) {
+      console.error('Failed to export transactions:', error)
       res.status(500).json({ error: 'Failed to export transactions' })
     }
   } else {

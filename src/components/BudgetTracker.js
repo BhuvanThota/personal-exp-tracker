@@ -60,7 +60,7 @@ export default function BudgetTracker() {
 
   useEffect(() => {
     fetchBudgets()
-  }, [])
+  }, []);
 
   const fetchBudgets = async () => {
     try {
