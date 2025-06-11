@@ -1,38 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Pencil, Trash2, Calendar, Tag } from 'lucide-react';
 import { formatCurrency } from '../lib/utils'; // Assuming this utility is in '../lib/utils.js'
 import TransactionForm from './TransactionForm'; // Assuming TransactionForm is in './TransactionForm.js'
 
-export default function TransactionList({ onChange }) {
-  const [transactions, setTransactions] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+export default function TransactionList({ transactions = [], onChange }) {
   const [editTx, setEditTx] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [deleteTx, setDeleteTx] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
 
-  // Fetch transactions with pagination
-  const fetchTransactions = async (page = 1) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/transactions?page=${page}&limit=10`);
-      const data = await res.json();
-      setTransactions(data.data);
-      setPagination(data.pagination);
-      setPage(data.pagination.currentPage);
-    } catch (err) {
-      console.error("Error fetching transactions:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransactions(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  // No fetching or pagination logic: transactions are passed as a prop from the parent
 
   const handleEditClick = (tx) => {
     setEditTx(tx);
@@ -56,7 +33,6 @@ export default function TransactionList({ onChange }) {
 
       setShowEdit(false);
       setEditTx(null);
-      fetchTransactions(page);
       if (onChange) onChange();
     } catch (err) {
       console.error(err);
@@ -73,7 +49,6 @@ export default function TransactionList({ onChange }) {
 
       setShowDelete(false);
       setDeleteTx(null);
-      fetchTransactions(page);
       if (onChange) onChange();
     } catch (err) {
       console.error(err);
@@ -104,19 +79,11 @@ export default function TransactionList({ onChange }) {
 
   return (
     <div className="space-y-3">
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 animate-spin text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Loading...</h3>
-        </div>
-      ) : (
-        transactions.map((tx, i) => (
-          <div
-            key={tx.id || i}
-            className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-200 overflow-hidden"
-          >
+      {transactions.map((tx, i) => (
+        <div
+          key={tx.id || i}
+          className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-200 overflow-hidden"
+        >
             {/* Mobile Layout */}
             <div className="block sm:hidden">
               <div className="p-4 space-y-3">
@@ -250,7 +217,7 @@ export default function TransactionList({ onChange }) {
             </div>
           </div>
         ))
-      )}
+      }
       {transactions.length === 0 && (
         <div className="text-center py-12">
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -316,28 +283,7 @@ export default function TransactionList({ onChange }) {
           </div>
         </div>
       )}
-      {/* Pagination Controls */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-sm rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={!pagination.hasPrev}
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <button
-            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-sm rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"
-            onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
-            disabled={!pagination.hasNext}
-          >
-            Next
-          </button>
-        </div>
-      )}
+      {/* No pagination controls here: handled by parent */}
     </div>
   );
 }
