@@ -6,13 +6,7 @@ import FilterBar from "../components/FilterBar";
 import BudgetTracker from "../components/BudgetTracker";
 import BalanceChart from "../components/BalanceChart";
 import DashboardHeader from "../components/DashboardHeader";
-import { formatCurrency } from "../lib/utils";
-import {
-  IndianRupee,
-  Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-} from "lucide-react";
+import StatsCards from "../components/StatsCards";
 
 const TRANSACTION_TYPE = {
   CREDIT: "CREDIT",
@@ -31,16 +25,6 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Calculate income and expenses stats
-  const stats = useMemo(() => {
-    const income = transactions
-      .filter((t) => t.type === "CREDIT")
-      .reduce((sum, t) => sum + t.amount, 0);
-    const expenses = transactions
-      .filter((t) => t.type === "DEBIT")
-      .reduce((sum, t) => sum + t.amount, 0);
-    return { income, expenses };
-  }, [transactions]);
 
   useEffect(() => {
     fetchData();
@@ -166,8 +150,16 @@ export default function Home() {
     return filteredTransactions.slice(start, start + itemsPerPage);
   }, [filteredTransactions, currentPage]);
 
-  console.log("Paginated transactions",paginatedTransactions);
-  console.log("Filtered transactions",filteredTransactions);
+   // Calculate income and expenses stats based on filtered transactions
+   const stats = useMemo(() => {
+    const income = filteredTransactions
+      .filter((t) => t.type === "CREDIT")
+      .reduce((sum, t) => sum + t.amount, 0);
+    const expenses = filteredTransactions
+      .filter((t) => t.type === "DEBIT")
+      .reduce((sum, t) => sum + t.amount, 0);
+    return { income, expenses };
+  }, [filteredTransactions]);
 
   // Reset page when filters or transactions change
   useEffect(() => {
@@ -185,7 +177,7 @@ export default function Home() {
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin border-t-blue-600 dark:border-t-blue-400"></div>
-            <Wallet className="w-6 h-6 text-blue-600 dark:text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+            <div className="w-6 h-6 text-blue-600 dark:text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="text-gray-600 dark:text-gray-400 mt-4 font-medium">
             Loading your financial data...
@@ -207,70 +199,8 @@ export default function Home() {
             {/* Filter Bar */}
             <FilterBar filters={filters} setFilters={setFilters} categories={categories} />
 
-            <div className="max-w-7xl mx-auto px-4 py-8">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {/* Balance Card */}
-                <div className="md:col-span-1 group">
-                  <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                        <IndianRupee className="p-1 w-8 h-8 text-white/80" />
-                        <div className="text-sm text-white/80 font-medium">
-                          Current Balance
-                        </div>
-                      </div>
-                      <div className="text-4xl font-bold mb-2">
-                        {formatCurrency(balance.amount)}
-                      </div>
-                      <div className="text-white/80">Available funds</div>
-                    </div>
-                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/5 rounded-full"></div>
-                  </div>
-                </div>
-
-                {/* Income Card */}
-                <div className="group">
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-                        <ArrowUpRight className="w-6 h-6 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                        This Month
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                      {formatCurrency(stats.income)}
-                    </div>
-                    <div className="text-green-600 dark:text-green-400 font-medium">
-                      Income
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expenses Card */}
-                <div className="group">
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-                        <ArrowDownRight className="w-6 h-6 text-red-600 dark:text-red-400" />
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                        This Month
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                      {formatCurrency(stats.expenses)}
-                    </div>
-                    <div className="text-red-600 dark:text-red-400 font-medium">
-                      Expenses
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Stats Cards */}
+            <StatsCards balance={balance} stats={stats} filters={filters} setFilters={setFilters}/>
 
             {/* Transaction List */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">

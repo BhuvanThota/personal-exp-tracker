@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Download, FileText, TrendingUp } from 'lucide-react';
+import { ChevronDown, Download, FileText, TrendingUp, Filter, Calendar, Tag, Search, XCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import Link from 'next/link'; // Assuming Next.js Link component for navigation
 
 export default function FilterBar({ filters, setFilters, categories }) {
@@ -62,6 +62,24 @@ export default function FilterBar({ filters, setFilters, categories }) {
     // It makes sense to collapse the filter bar after clearing, for a cleaner UI
     setCollapsed(true);
   };
+
+  const clearAllFilters = () => {
+    setFilters({
+      dateFrom: '',
+      dateTo: '',
+      category: '',
+      type: '',
+      search: ''
+    });
+  };
+
+  // Check if any filter is active, using filters.search for the text input
+  const hasFilters =
+    filters?.dateFrom ||
+    filters?.dateTo ||
+    filters?.category ||
+    filters?.type ||
+    filters?.search;
 
   return (
     <div className="mb-6 p-4 bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-100 dark:border-gray-700 transition-all duration-300">
@@ -194,6 +212,53 @@ export default function FilterBar({ filters, setFilters, categories }) {
           </div>
         </form>
       </div>
+
+      {/* Applied Filters Display - Enhanced Visuals */}
+      {hasFilters && (
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-xl border border-blue-200 dark:border-blue-800 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-blue-800 dark:text-blue-200">
+              <Filter className="w-5 h-5" />
+              Applied Filters
+            </h3>
+            <button
+              onClick={clearAllFilters}
+              className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-100 rounded-full text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <XCircle className="w-4 h-4" />
+              Clear All
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 text-sm">
+            {filters.dateFrom && (
+              <span className="flex items-center gap-1 bg-blue-200 dark:bg-blue-700 text-blue-900 dark:text-blue-100 px-3 py-1 rounded-full font-medium">
+                <Calendar className="w-3 h-3" /> From: {filters.dateFrom}
+              </span>
+            )}
+            {filters.dateTo && (
+              <span className="flex items-center gap-1 bg-blue-200 dark:bg-blue-700 text-blue-900 dark:text-blue-100 px-3 py-1 rounded-full font-medium">
+                <Calendar className="w-3 h-3" /> To: {filters.dateTo}
+              </span>
+            )}
+            {filters.category && (
+              <span className="flex items-center gap-1 bg-purple-200 dark:bg-purple-700 text-purple-900 dark:text-purple-100 px-3 py-1 rounded-full font-medium">
+                <Tag className="w-3 h-3" /> Category: {filters.category}
+              </span>
+            )}
+            {filters.type && (
+              <span className="flex items-center gap-1 bg-green-200 dark:bg-green-700 text-green-900 dark:text-green-100 px-3 py-1 rounded-full font-medium">
+                {filters.type === 'CREDIT' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />} Type: {filters.type}
+              </span>
+            )}
+            {filters.search && (
+              <span className="flex items-center gap-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100 px-3 py-1 rounded-full font-medium">
+                <Search className="w-3 h-3" /> Search: "{filters.search}"
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
