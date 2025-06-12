@@ -15,7 +15,9 @@ model User {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  profile   UserProfile?
+  profile       UserProfile?
+  accounts      Account[]
+  accountGroups AccountGroup[]
 }
 
 model UserProfile {
@@ -34,24 +36,82 @@ model UserProfile {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String   // e.g., "Checking Account", "Savings", "Cash"
+  type        String   // "CHECKING", "SAVINGS", "CREDIT", "CASH", etc.
+  bankName    String?  // Optional bank name
+  accountNumber String? // Last 4 digits or masked account number
+  isActive    Boolean  @default(true)
+  currency    String   @default("USD")
+  
+  // Account metadata
+  openingBalance Float   @default(0)
+  currentBalance Float   @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions       Transaction[]
+  budgets            Budget[]
+  balanceHistory     BalanceHistory[]
+  accountGroupMembers AccountGroupMember[]
+
+  @@index([userId])
+  @@index([userId, isActive])
 }
 
 model Transaction {
   id          String   @id @default(uuid())
+  accountId   String
   date        DateTime
   description String
   amount      Float
   type        String   // "CREDIT" or "DEBIT"
   category    String?
+  subcategory String?
+  
+  // Additional transaction metadata
+  reference   String?  // Transaction reference/ID from bank
+  notes       String?
+  tags        String[] // For flexible tagging
+  
+  // Balance tracking
+  balanceAfter Float?  // Account balance after this transaction
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Relations
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([accountId, date])
+  @@index([category])
+  @@index([type])
 }
 
-model Balance {
+// Replace the single Balance model with balance history for better tracking
+model BalanceHistory {
   id        String   @id @default(uuid())
+  accountId String
   amount    Float
-  updatedAt DateTime @updatedAt
+  date      DateTime @default(now())
+  reason    String?  // "TRANSACTION", "ADJUSTMENT", "INITIAL"
+  
+  createdAt DateTime @default(now())
+
+  // Relations
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([accountId, date])
 }
 
 model Suggestion {
@@ -62,10 +122,95 @@ model Suggestion {
 }
 
 model Budget {
-  id       String @id @default(uuid())
-  category String
-  amount   Float
-  period   String // "monthly" or "weekly"
+  id             String   @id @default(uuid())
+  accountId      String?  // For account-specific budgets
+  accountGroupId String?  // For account group budgets
+  userId         String?  // For global budgets across all accounts
+  category       String
+  amount         Float
+  spent          Float    @default(0) // Track spending against budget
+  period         String   // "MONTHLY", "WEEKLY", "YEARLY"
+  
+  // Budget period tracking
+  startDate DateTime
+  endDate   DateTime
+  
+  isActive  Boolean  @default(true)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  account      Account?      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountGroup AccountGroup? @relation(fields: [accountGroupId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([accountGroupId])
+  @@index([category])
+  @@index([period])
+  @@index([startDate, endDate])
+}
+
+// Account Groups/Combo Accounts for aggregating multiple accounts
+model AccountGroup {
+  id          String @id @default(uuid())
+  userId      String
+  name        String // e.g., "My Accounts", "Wife's Accounts", "All Family Accounts"
+  description String?
+  color       String? // For UI customization
+  isDefault   Boolean @default(false) // One default group per user
+  isActive    Boolean @default(true)
+  
+  // Aggregation settings
+  includeInOverall Boolean @default(true) // Include in overall calculations
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountMembers  AccountGroupMember[]
+  budgets         Budget[]             // Budgets can be applied to account groups
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@index([userId, isActive])
+}
+
+// Junction table for many-to-many relationship between AccountGroup and Account
+model AccountGroupMember {
+  id            String @id @default(uuid())
+  accountGroupId String
+  accountId     String
+  
+  // Member-specific settings
+  weight        Float  @default(1.0) // For weighted calculations if needed
+  isActive      Boolean @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  accountGroup  AccountGroup @relation(fields: [accountGroupId], references: [id], onDelete: Cascade)
+  account       Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountGroupId, accountId]) // Prevent duplicate account in same group
+  @@index([accountGroupId])
+  @@index([accountId])
+}
+
+// Optional: For future features like account sharing or joint accounts
+model AccountUser {
+  id        String @id @default(uuid())
+  accountId String
+  userId    String
+  role      String @default("OWNER") // "OWNER", "VIEWER", "EDITOR"
+  
+  createdAt DateTime @default(now())
+  
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, userId])
+  @@index([userId])
 }
