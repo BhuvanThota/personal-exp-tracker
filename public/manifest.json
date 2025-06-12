@@ -1,7 +1,7 @@
 {
-    "name":"Expense Tracker",
-    "short_name":"Expense Tracker",
-    "description": "Personal Expense Tracker with lots of features. Visualize your expenses and income.",
+    "name":"Budget Tracker",
+    "short_name":"Budget Tracker",
+    "description": "Personal Budget Tracker with lots of features. Visualize your expenses and incomes.",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait",

@@ -6,8 +6,8 @@ export default function Document() {
     <Html lang="en">
       <Head>
         <meta charSet="UTF-8" />
-        <meta name="title" content="Expense Tracker" />
-        <meta name="keywords" content="Expense Tracker, Personal Finance, Budgeting, Expense Management" />
+        <meta name="title" content="Budget Tracker" />
+        <meta name="keywords" content="Budget Tracker, Expense Tracker, Personal Finance, Budgeting, Expense Management" />
         <meta name="description" content="Track your personal expenses easily with our intuitive dashboard." />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#4f46e5" />
