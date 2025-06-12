@@ -1,7 +1,7 @@
 {
     "name": "Budget Tracker",
     "short_name": "BudgetTracker",
-    "description": "Track your personal expenses easily with our intuitive dashboard",
+    "description": "Track your personal expenses easily with our intuitive visual dashboard",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
