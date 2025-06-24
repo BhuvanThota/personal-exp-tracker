@@ -209,7 +209,6 @@ export default function Dashboard() {
       .slice(0, 5);
   }, [transactions]);
 
-
   // Clear newly added highlight after 10 seconds
   useEffect(() => {
     if (newlyAddedId) {
@@ -240,8 +239,6 @@ export default function Dashboard() {
       .reduce((sum, t) => sum + t.amount, 0);
     return { income, expenses };
   }, [transactions]);
-
-
 
   // Handle items per page change without full page reload
   const handleItemsPerPageChange = (newItemsPerPage) => {
@@ -293,9 +290,9 @@ export default function Dashboard() {
       <DashboardHeader />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content - Takes 3 columns on large screens */}
+          <div className="lg:col-span-3 space-y-8">
             {/* Filter Bar */}
             <FilterBar filters={filters} setFilters={setFilters} categories={categories} />
 
@@ -311,7 +308,7 @@ export default function Dashboard() {
             {/* Quick Actions */}
             <QuickActions onAddTransaction={() => setShowForm(true)} />
 
-            {/* Transaction List with Enhanced Pagination */}
+            {/* Transaction List */}
             <div id="transaction-list" className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
@@ -372,6 +369,15 @@ export default function Dashboard() {
               />
             </div>
 
+            {/* Enhanced Chart Container - Remove duplicate header since BalanceChart has its own */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+              <BalanceChart 
+                data={balanceHistory} 
+                currentBalance={balance?.amount}
+              />
+            </div>
+              
+
             {/* Transaction Form Modal (Add) */}
             {showForm && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
@@ -386,22 +392,48 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Now takes only 1 column */}
           <div className="space-y-8">
-            {/* Balance Chart */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-lg font-semibold mb-4 dark:text-gray-200">
-                Balance Trend (30 days)
-              </h2>
-              <BalanceChart data={balanceHistory} />
-            </div>
-
             {/* Budget Tracker */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-lg font-semibold mb-4 dark:text-gray-200">
-                Budgets
-              </h2>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Budget Tracker
+                </h2>
+              </div>
               <BudgetTracker onChange={fetchData} />
+            </div>
+
+            {/* Quick Insights Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-6">
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
+                💡 Quick Insights
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-700 dark:text-blue-300">Today&apos;s Expenses</span>
+                  <span className="font-medium text-blue-900 dark:text-blue-100">
+                    ₹{liveStats.todayExpenses.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-700 dark:text-blue-300">This Week</span>
+                  <span className="font-medium text-blue-900 dark:text-blue-100">
+                    ₹{liveStats.weekExpenses.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-700 dark:text-blue-300">This Month</span>
+                  <span className="font-medium text-blue-900 dark:text-blue-100">
+                    ₹{liveStats.monthExpenses.toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
