@@ -286,6 +286,7 @@ export default function BalanceChart({ data }) {
                 />
               )}
               
+              
               <Area
                 type="monotone"
                 dataKey="balance"
