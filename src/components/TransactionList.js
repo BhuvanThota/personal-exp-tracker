@@ -1,15 +1,22 @@
 import { useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Pencil, Trash2, Calendar, Tag } from 'lucide-react';
-import { formatCurrency } from '../lib/utils'; // Assuming this utility is in '../lib/utils.js'
-import TransactionForm from './TransactionForm'; // Assuming TransactionForm is in './TransactionForm.js'
+import { ArrowUpRight, ArrowDownRight, Pencil, Trash2, Calendar, Tag, Activity, Sparkles, Clock } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
+import TransactionForm from './TransactionForm';
 
-export default function TransactionList({ transactions = [], onChange }) {
+export default function TransactionList({ 
+  transactions = [], 
+  onChange, 
+  onUpdate,
+  currentHighlight = -1, 
+  recentTransactions = [],
+  newlyAddedId = null,
+  recentlyUpdatedId = null,
+  loading = false // Add loading prop
+}) {
   const [editTx, setEditTx] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
   const [deleteTx, setDeleteTx] = useState(null);
   const [showDelete, setShowDelete] = useState(false);
-
-  // No fetching or pagination logic: transactions are passed as a prop from the parent
 
   const handleEditClick = (tx) => {
     setEditTx(tx);
@@ -33,6 +40,9 @@ export default function TransactionList({ transactions = [], onChange }) {
 
       setShowEdit(false);
       setEditTx(null);
+      
+      // Call onUpdate to trigger highlighting
+      if (onUpdate) onUpdate(updatedTx);
       if (onChange) onChange();
     } catch (err) {
       console.error(err);
@@ -55,7 +65,53 @@ export default function TransactionList({ transactions = [], onChange }) {
     }
   };
 
-  // Category color logic remains unchanged
+  // Determine transaction highlight status
+  const getTransactionHighlight = (transaction) => {
+    if (newlyAddedId && transaction.id === newlyAddedId) {
+      return 'newly-added';
+    }
+    if (recentlyUpdatedId && transaction.id === recentlyUpdatedId) {
+      return 'recently-updated';
+    }
+    if (currentHighlight !== -1 && recentTransactions.length > 0) {
+      const highlightedTx = recentTransactions[currentHighlight];
+      if (highlightedTx && highlightedTx.id === transaction.id) {
+        return 'cycling';
+      }
+    }
+    return 'normal';
+  };
+
+  // Get highlight styles based on type
+  const getHighlightStyles = (highlightType) => {
+    switch (highlightType) {
+      case 'newly-added':
+        return {
+          container: 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-300 dark:border-green-600 shadow-lg ring-2 ring-green-200 dark:ring-green-800 animate-pulse',
+          indicator: 'bg-gradient-to-r from-green-500 to-emerald-500',
+          badge: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-300 dark:border-green-700'
+        };
+      case 'recently-updated':
+        return {
+          container: 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-300 dark:border-blue-600 shadow-lg ring-2 ring-blue-200 dark:ring-blue-800',
+          indicator: 'bg-gradient-to-r from-blue-500 to-indigo-500',
+          badge: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+        };
+      case 'cycling':
+        return {
+          container: 'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-300 dark:border-purple-600 shadow-md ring-1 ring-purple-200 dark:ring-purple-800',
+          indicator: 'bg-gradient-to-r from-purple-500 to-pink-500',
+          badge: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-700'
+        };
+      default:
+        return {
+          container: 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600',
+          indicator: '',
+          badge: ''
+        };
+    }
+  };
+
   const getCategoryColor = (category) => {
     const colors = {
       'Income': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
@@ -72,18 +128,39 @@ export default function TransactionList({ transactions = [], onChange }) {
       'Bonus': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
       'Refund': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
       'Family': 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300',
-      // Add more specific categories here if needed
     };
     return colors[category] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
   };
 
   return (
-    <div className="space-y-3">
-      {transactions.map((tx, i) => (
-        <div
-          key={tx.id || i}
-          className="group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-200 overflow-hidden"
-        >
+    <div className="space-y-4">
+      {/* Loading overlay for pagination */}
+      {loading && (
+        <div className="relative">
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10 rounded-2xl flex items-center justify-center">
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm font-medium">Loading...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {transactions.map((tx, i) => {
+        const highlightType = getTransactionHighlight(tx);
+        const styles = getHighlightStyles(highlightType);
+        const isHighlighted = highlightType !== 'normal';
+        
+        return (
+          <div
+            key={tx.id || i}
+            className={`group relative rounded-2xl shadow-sm hover:shadow-md transition-all duration-500 overflow-hidden ${styles.container}`}
+          >
+            {/* Highlight indicator bar */}
+            {isHighlighted && (
+              <div className={`absolute top-0 left-0 right-0 h-1 ${styles.indicator} ${highlightType === 'newly-added' ? 'animate-pulse' : ''}`}></div>
+            )}
+
             {/* Mobile Layout */}
             <div className="block sm:hidden">
               <div className="p-4 space-y-3">
@@ -91,37 +168,43 @@ export default function TransactionList({ transactions = [], onChange }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                         tx.type === 'CREDIT'
-                          ? 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40'
-                          : 'bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40'
+                          ? isHighlighted 
+                            ? 'bg-gradient-to-br from-green-400 to-emerald-400 shadow-lg' 
+                            : 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40'
+                          : isHighlighted
+                            ? 'bg-gradient-to-br from-red-400 to-rose-400 shadow-lg'
+                            : 'bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40'
                       }`}
                     >
                       {tx.type === 'CREDIT' ? (
-                        <ArrowUpRight className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <ArrowUpRight className={`w-6 h-6 ${isHighlighted ? 'text-white' : 'text-green-600 dark:text-green-400'}`} />
                       ) : (
-                        <ArrowDownRight className="w-6 h-6 text-red-600 dark:text-red-400" />
+                        <ArrowDownRight className={`w-6 h-6 ${isHighlighted ? 'text-white' : 'text-red-600 dark:text-red-400'}`} />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-base leading-tight truncate">
+                      <h3 className={`font-semibold text-base leading-tight truncate transition-colors duration-300 ${
+                        isHighlighted ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
+                      }`}>
                         {tx.description}
                       </h3>
                     </div>
                   </div>
                   <div
-                    className={`font-bold text-lg ${
+                    className={`font-bold text-lg transition-colors duration-300 ${
                       tx.type === 'CREDIT'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
+                        ? isHighlighted ? 'text-green-700 dark:text-green-300' : 'text-green-600 dark:text-green-400'
+                        : isHighlighted ? 'text-red-700 dark:text-red-300' : 'text-red-600 dark:text-red-400'
                     }`}
                   >
                     {tx.type === 'CREDIT' ? '+' : '-'}{formatCurrency(tx.amount)}
                   </div>
                 </div>
 
-                {/* Details */}
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                {/* Details with highlight badges */}
+                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
                   <div className="flex items-center gap-1">
                     <Tag className="w-4 h-4" />
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(tx.category)}`}>
@@ -132,6 +215,25 @@ export default function TransactionList({ transactions = [], onChange }) {
                     <Calendar className="w-4 h-4" />
                     <span>{tx.date ? new Date(tx.date).toLocaleDateString() : ''}</span>
                   </div>
+                  {/* Status badges */}
+                  {highlightType === 'newly-added' && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                      <Sparkles className="w-3 h-3" />
+                      NEW
+                    </div>
+                  )}
+                  {highlightType === 'recently-updated' && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                      <Clock className="w-3 h-3" />
+                      UPDATED
+                    </div>
+                  )}
+                  {highlightType === 'cycling' && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                      <Activity className="w-3 h-3 animate-pulse" />
+                      LIVE
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -159,23 +261,29 @@ export default function TransactionList({ transactions = [], onChange }) {
               <div className="flex items-center justify-between p-5">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div
-                    className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                    className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 ${
                       tx.type === 'CREDIT'
-                        ? 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40'
-                        : 'bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40'
+                        ? isHighlighted 
+                          ? 'bg-gradient-to-br from-green-400 to-emerald-400 shadow-lg' 
+                          : 'bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40'
+                        : isHighlighted
+                          ? 'bg-gradient-to-br from-red-400 to-rose-400 shadow-lg'
+                          : 'bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40'
                     }`}
                   >
                     {tx.type === 'CREDIT' ? (
-                      <ArrowUpRight className="w-7 h-7 text-green-600 dark:text-green-400" />
+                      <ArrowUpRight className={`w-7 h-7 ${isHighlighted ? 'text-white' : 'text-green-600 dark:text-green-400'}`} />
                     ) : (
-                      <ArrowDownRight className="w-7 h-7 text-red-600 dark:text-red-400" />
+                      <ArrowDownRight className={`w-7 h-7 ${isHighlighted ? 'text-white' : 'text-red-600 dark:text-red-400'}`} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-lg mb-1">
+                    <h3 className={`font-semibold text-lg mb-1 transition-colors duration-300 ${
+                      isHighlighted ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'
+                    }`}>
                       {tx.description}
                     </h3>
-                    <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(tx.category)}`}>
                         {tx.category || 'N/A'}
                       </span>
@@ -183,15 +291,34 @@ export default function TransactionList({ transactions = [], onChange }) {
                         <Calendar className="w-4 h-4" />
                         <span>{tx.date ? new Date(tx.date).toLocaleDateString() : ''}</span>
                       </div>
+                      {/* Status badges for desktop */}
+                      {highlightType === 'newly-added' && (
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                          <Sparkles className="w-3 h-3" />
+                          NEWLY ADDED
+                        </div>
+                      )}
+                      {highlightType === 'recently-updated' && (
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                          <Clock className="w-3 h-3" />
+                          RECENTLY UPDATED
+                        </div>
+                      )}
+                      {highlightType === 'cycling' && (
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${styles.badge}`}>
+                          <Activity className="w-3 h-3 animate-pulse" />
+                          LIVE HIGHLIGHT
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div
-                    className={`font-bold text-xl ${
+                    className={`font-bold text-xl transition-colors duration-300 ${
                       tx.type === 'CREDIT'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
+                        ? isHighlighted ? 'text-green-700 dark:text-green-300' : 'text-green-600 dark:text-green-400'
+                        : isHighlighted ? 'text-red-700 dark:text-red-300' : 'text-red-600 dark:text-red-400'
                     }`}
                   >
                     {tx.type === 'CREDIT' ? '+' : '-'}{formatCurrency(tx.amount)}
@@ -216,8 +343,9 @@ export default function TransactionList({ transactions = [], onChange }) {
               </div>
             </div>
           </div>
-        ))
-      }
+        );
+      })}
+      
       {transactions.length === 0 && (
         <div className="text-center py-12">
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -283,7 +411,6 @@ export default function TransactionList({ transactions = [], onChange }) {
           </div>
         </div>
       )}
-      {/* No pagination controls here: handled by parent */}
     </div>
   );
 }

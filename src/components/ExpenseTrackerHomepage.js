@@ -29,37 +29,46 @@ const ExpenseTrackerHomepage = () => {
   ]);
 
   const transactions = useMemo(() => [
-    { icon: Pizza, name: 'Swiggy', amount: -360, category: 'Food' },
-    { icon: Car, name: 'Uber', amount: -450, category: 'Transport' },
+    { icon: Pizza, name: 'Swiggy', amount: -3600, category: 'Food' },
+    { icon: Car, name: 'Uber', amount: -4500, category: 'Transport' },
     { icon: CreditCard, name: 'Amazon', amount: -2998, category: 'Shopping' },
-    { icon: Home, name: 'Rent', amount: -12000, category: 'Bills' }
+    { icon: Home, name: 'Rent', amount: -9000, category: 'Bills' }
   ], []);
+
+  // Calculate category totals from transactions
+  const categoryTotals = useMemo(() => {
+    const totals = {};
+    transactions.forEach(transaction => {
+      if (!totals[transaction.category]) {
+        totals[transaction.category] = 0;
+      }
+      totals[transaction.category] += Math.abs(transaction.amount);
+    });
+    return totals;
+  }, [transactions]);
 
   // Animate values on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimatedValues({ spent: 2847, saved: 1250, budget: 3500 });
+      
+      // Initialize chart with actual category totals
+      setChartData(prev => prev.map(item => ({
+        ...item,
+        amount: categoryTotals[item.category] || 0
+      })));
     }, 500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [categoryTotals]);
 
-  // Animate transactions and chart
+  // Animate transactions (highlighting effect)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTransaction(prev => (prev + 1) % transactions.length);
-      
-      // Update chart data based on current transaction
-      const transaction = transactions[currentTransaction];
-      setChartData(prev => prev.map(item => {
-        if (item.category === transaction.category) {
-          return { ...item, amount: Math.abs(transaction.amount) };
-        }
-        return { ...item, amount: item.amount * 0.9 }; // Fade other categories
-      }));
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [currentTransaction, transactions]);
+  }, [transactions.length]);
 
   const AnimatedNumber = ({ value, prefix = '', suffix = '' }) => {
     const [displayValue, setDisplayValue] = useState(0);
@@ -98,6 +107,9 @@ const ExpenseTrackerHomepage = () => {
       <IndianRupee className="w-6 h-6 text-blue-400 opacity-30" />
     </div>
   );
+
+  // Get the maximum amount for chart scaling
+  const maxAmount = Math.max(...chartData.map(item => item.amount));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-grey-500 to-slate-900 text-white overflow-hidden bg-fixed">
@@ -208,20 +220,27 @@ const ExpenseTrackerHomepage = () => {
               <div className="space-y-4 relative z-10">
                 <h4 className="text-lg font-semibold text-slate-300">Spending by Category</h4>
                 <div className="space-y-3">
-                  {chartData.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>{item.category}</span>
-                        <span className="font-medium">₹{item.amount.toFixed(0)}</span>
+                  {chartData.map((item, index) => {
+                    const currentTransactionCategory = transactions[currentTransaction]?.category;
+                    const isHighlighted = item.category === currentTransactionCategory;
+                    return (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className={isHighlighted ? 'text-blue-300 font-medium' : ''}>{item.category}</span>
+                          <span className={`font-medium ${isHighlighted ? 'text-blue-300' : ''}`}>₹{item.amount.toFixed(0)}</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all duration-1000 ${item.color} ${isHighlighted ? 'shadow-lg' : ''}`}
+                            style={{ 
+                              width: `${maxAmount > 0 ? (item.amount / maxAmount) * 100 : 0}%`,
+                              filter: isHighlighted ? 'brightness(1.2)' : 'brightness(1)'
+                            }}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-700 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-1000 ${item.color}`}
-                          style={{ width: `${(item.amount) / 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
