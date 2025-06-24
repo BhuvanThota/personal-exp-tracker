@@ -305,9 +305,6 @@ export default function Dashboard() {
               setFilters={setFilters}
             />
 
-            {/* Quick Actions */}
-            <QuickActions onAddTransaction={() => setShowForm(true)} />
-
             {/* Transaction List */}
             <div id="transaction-list" className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -370,7 +367,7 @@ export default function Dashboard() {
             </div>
 
             {/* Enhanced Chart Container - Remove duplicate header since BalanceChart has its own */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
               <BalanceChart 
                 data={balanceHistory} 
                 currentBalance={balance?.amount}
@@ -394,6 +391,9 @@ export default function Dashboard() {
 
           {/* Sidebar - Now takes only 1 column */}
           <div className="space-y-8">
+            {/* Quick Actions - Now in Sidebar */}
+            <QuickActions onAddTransaction={() => setShowForm(true)} />
+
             {/* Budget Tracker */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
               <div className="flex items-center gap-2 mb-4">
