@@ -193,7 +193,7 @@ export default function FilterBar({ filters, setFilters, categories }) {
             )}
             {filters.search && (
               <span className="flex items-center gap-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded-full text-xs font-medium">
-                <Search className="w-3 h-3" /> "{filters.search}"
+                <Search className="w-3 h-3" /> &quot;{filters.search}&quot;
               </span>
             )}
           </div>
