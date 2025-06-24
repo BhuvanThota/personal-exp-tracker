@@ -26,7 +26,7 @@ export default function Dashboard() {
   
   // Enhanced pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
   const [paginationLoading, setPaginationLoading] = useState(false); // Separate loading for pagination
 
@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   // Separate effect for pagination changes
   useEffect(() => {
-    if (currentPage > 1 || itemsPerPage !== 10) { // Skip initial load
+    if (currentPage > 1 || itemsPerPage !== 5) { // Skip initial load
       fetchTransactionsOnly();
     }
   }, [currentPage, itemsPerPage]);
